@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Poster Generator</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+    .container {
+      max-width: 600px;
+      background: #1c1c1c;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 2px solid #333;
+      border-radius: 5px;
+      background: #222;
+      color: white;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background: #6200ea;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #3700b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Movie Poster Generator</h1>
+    <p>Enter the name of a movie to generate its poster.</p>
+    <input type="text" id="movieName" placeholder="Enter movie name" />
+    <button id="generateBtn">Generate Poster</button>
+    <p id="status"></p>
+    <a id="downloadLink" style="display: none;" download>Download Poster</a>
+  </div>
+  <script>
+    document.getElementById("generateBtn").addEventListener("click", async () => {
+      const movieName = document.getElementById("movieName").value.trim();
+      const statusEl = document.getElementById("status");
+      const downloadLink = document.getElementById("downloadLink");
+
+      if (!movieName) {
+        statusEl.textContent = "Please enter a movie name.";
+        return;
+      }
+
+      statusEl.textContent = "Generating poster...";
+      downloadLink.style.display = "none";
+
+      try {
+        const response = await fetch(`/generate?movieName=${encodeURIComponent(movieName)}`);
+        if (!response.ok) throw new Error("Failed to generate poster.");
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        downloadLink.href = url;
+        downloadLink.textContent = "Download Poster";
+        downloadLink.style.display = "inline-block";
+        statusEl.textContent = "Poster generated successfully!";
+      } catch (error) {
+        statusEl.textContent = `Error: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
