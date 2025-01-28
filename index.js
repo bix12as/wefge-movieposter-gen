@@ -1,182 +1,24 @@
-
 /*
-const { createCanvas, loadImage } = require('canvas');
-const fs = require('fs');
-const axios = require('axios');
-const path = require('path');
+        ███    ██ ███████ ██████  ██    ██ ██       █████  
+        ████   ██ ██      ██   ██ ██    ██ ██      ██   ██ 
+        ██ ██  ██ █████   ██████  ██    ██ ██      ███████ 
+        ██  ██ ██ ██      ██   ██ ██    ██ ██      ██   ██ 
+        ██   ████ ███████ ██████   ██████  ███████ ██   ██                                               
 
-// TMDb API setup
-const TMDB_API_KEY = '7f1173b293f68db2849094212b8f017b'; // Replace with your TMDb API key
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-
-// Your website link
-const WEBSITE_LINK = 'https://coderx-films.onrender.com/';
-
-// Create Movies folder if it doesn't exist
-const OUTPUT_FOLDER = './Movies';
-if (!fs.existsSync(OUTPUT_FOLDER)) {
-  fs.mkdirSync(OUTPUT_FOLDER);
-}
-
-// Function to fetch movie poster
-async function fetchMoviePoster(movieName) {
-  try {
-    const response = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
-      params: {
-        api_key: TMDB_API_KEY,
-        query: movieName,
-      },
-    });
-
-    const movie = response.data.results[0]; // Get the first result
-    if (!movie) {
-      throw new Error(`Movie "${movieName}" not found.`);
-    }
-
-    const posterPath = movie.poster_path;
-    return `https://image.tmdb.org/t/p/original${posterPath}`;
-  } catch (error) {
-    console.error(`Error fetching movie poster: ${error.message}`);
-    return null;
-  }
-}
-
-// Function to generate canvas with movie poster, "Watch Now" text, and website link
-async function createMoviePoster(movieName) {
-  try {
-    const posterUrl = await fetchMoviePoster(movieName);
-    if (!posterUrl) return;
-
-    // Load the movie poster
-    const posterImage = await loadImage(posterUrl);
-
-    // Set canvas size based on the poster
-    const canvasWidth = posterImage.width;
-    const canvasHeight = posterImage.height;
-    const canvas = createCanvas(canvasWidth, canvasHeight);
-    const ctx = canvas.getContext('2d');
-
-    // Draw the movie poster
-    ctx.drawImage(posterImage, 0, 0, canvasWidth, canvasHeight);
-
-    // Style settings for the text
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'white'; // White text
-    ctx.strokeStyle = 'black'; // Text outline
-    ctx.lineWidth = 3;
-
-    // Add shadow for aesthetic appeal
-    ctx.shadowColor = 'black';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-
-    // Add "Watch Now" text (centered)
-    ctx.font = 'bold 190px Arial';
-    ctx.strokeText('Watch Now', canvasWidth / 2, canvasHeight / 2 - 20);
-    ctx.fillText('Watch Now', canvasWidth / 2, canvasHeight / 2 - 20);
-
-    // Add website link below "Watch Now"
-    ctx.font = 'bold 90px Arial';
-    ctx.strokeText(WEBSITE_LINK, canvasWidth / 2, canvasHeight / 2 + 60);
-    ctx.fillText(WEBSITE_LINK, canvasWidth / 2, canvasHeight / 2 + 60);
-
-    // Save the canvas as a JPG file
-    const outputPath = path.join(OUTPUT_FOLDER, `${movieName}.jpg`);
-    const out = fs.createWriteStream(outputPath);
-    const stream = canvas.createJPEGStream();
-    stream.pipe(out);
-
-    out.on('finish', () => console.log(`Saved poster: ${outputPath}`));
-  } catch (error) {
-    console.error(`Error creating movie poster: ${error.message}`);
-  }
-}
-
-// Example usage
-(async () => {
-  const movies = ['Inception']; // Add your movie names here
-
-  for (const movie of movies) {
-    await createMoviePoster(movie);
-  }
-})();
-*/
-
-const express = require("express");
-const { createCanvas, loadImage } = require("canvas");
-const fs = require("fs");
-const axios = require("axios");
-const app = express();
-const PORT = 3000;
-
-// TMDb API setup
-const TMDB_API_KEY = '7f1173b293f68db2849094212b8f017b'; // Replace with your TMDb API key
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
-const WEBSITE_LINK = 'https://coderx-films.onrender.com/';
-
-// Fetch movie poster URL
-async function fetchMoviePoster(movieName) {
-  try {
-    const response = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
-      params: { api_key: TMDB_API_KEY, query: movieName },
-    });
-    const movie = response.data.results[0];
-    if (!movie) throw new Error("Movie not found.");
-    return `https://image.tmdb.org/t/p/original${movie.poster_path}`;
-  } catch (error) {
-    console.error(`Error fetching poster: ${error.message}`);
-    return null;
-  }
-}
-
-// Generate movie poster canvas
-async function generatePoster(movieName) {
-  const posterUrl = await fetchMoviePoster(movieName);
-  if (!posterUrl) throw new Error("Unable to fetch poster.");
-
-  const posterImage = await loadImage(posterUrl);
-  const canvas = createCanvas(posterImage.width, posterImage.height);
-  const ctx = canvas.getContext("2d");
-
-  ctx.drawImage(posterImage, 0, 0, posterImage.width, posterImage.height);
-
-  ctx.textAlign = "center";
-  ctx.fillStyle = "white";
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 4;
-
-  // Add "Watch Now" text
-  ctx.font = "bold 190px Arial";
-  ctx.strokeText("Watch Now", canvas.width / 2, canvas.height / 2 - 20);
-  ctx.fillText("Watch Now", canvas.width / 2, canvas.height / 2 - 20);
-
-  // Add website link
-  ctx.font = "bold 90px Arial";
-  ctx.strokeText(WEBSITE_LINK, canvas.width / 2, canvas.height / 2 + 60);
-  ctx.fillText(WEBSITE_LINK, canvas.width / 2, canvas.height / 2 + 60);
-
-  return canvas.toBuffer("image/jpeg");
-}
-
-// Serve static files (HTML & CSS)
-app.use(express.static("public"));
-
-// API endpoint to generate movie poster
-app.get("/generate", async (req, res) => {
-  const movieName = req.query.movieName;
-  if (!movieName) return res.status(400).send("Movie name is required.");
-
-  try {
-    const posterBuffer = await generatePoster(movieName);
-    res.set("Content-Type", "image/jpeg");
-    res.send(posterBuffer);
-  } catch (error) {
-    res.status(500).send(`Error: ${error.message}`);
-  }
-});
-
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+        *
+           * @project_name : Nebula
+           * @author : CODERXSA
+           * @youtube : https://www.youtube.com/@coderxsa
+           * @instagram : https://www.instagram.com/coderx.sa
+           * @description : So, if you remember me, I made Anita. Unfortunately, she's no longer working. RIP. My main code got corrupted, lost everything, so I made Nebula.
+           * @version : 1.0.0
+           * Donation : https://pay.yoco.com/coderx
+           * 
+           * For all my GitHub bots, I typically only check and update them when I have the time. My primary focus is on my main bots.
+           *
+           * Licensed under the GPL-3.0 License;
+        * 
+           * Created By CODERX.
+           * © 2025 Nebula.
+    */
+const _0x58bf06=_0x1c61;(function(_0x551616,_0x1cc710){const _0x2c3a81=_0x1c61,_0x398306=_0x551616();while(!![]){try{const _0x4c39c9=-parseInt(_0x2c3a81(0x14c))/0x1*(parseInt(_0x2c3a81(0x11e))/0x2)+-parseInt(_0x2c3a81(0x15b))/0x3+parseInt(_0x2c3a81(0x138))/0x4*(parseInt(_0x2c3a81(0x127))/0x5)+-parseInt(_0x2c3a81(0x149))/0x6+parseInt(_0x2c3a81(0x12f))/0x7*(parseInt(_0x2c3a81(0x15a))/0x8)+parseInt(_0x2c3a81(0x14b))/0x9+parseInt(_0x2c3a81(0x144))/0xa;if(_0x4c39c9===_0x1cc710)break;else _0x398306['push'](_0x398306['shift']());}catch(_0x55b82f){_0x398306['push'](_0x398306['shift']());}}}(_0x2c5a,0xb37a6));function _0x2c5a(){const _0x517646=['4923756cunrRU','1IbAMJA','TszwD','font','joOtM','qRqUy','Movie\x20not\x20found.','CusQl','width','fillText','static','min','Unable\x20to\x20fetch\x20poster.','Content-Type','drawImage','48RffZxJ','1384083hMXPqp','send','IXMiR','1775676MYCSQr','log','black','XDZtT','Movie\x20name\x20is\x20required.','7f1173b293f68db2849094212b8f017b','Watch\x20Now','image/jpeg','get','12385hAcGOV','movieName','status','Error\x20fetching\x20poster:\x20','strokeStyle','px\x20Arial','https://coderx-films.onrender.com/','use','1141574LrRYoa','data','IscaW','fillStyle','vmvhE','dzHbU','express','toBuffer','lineWidth','1684BUxmov','UaOXH','kJrSA','Ilmsr','getContext','bold\x20','set','listen','height','strokeText','Error:\x20','public','4709010Gfvjlt','axios','https://image.tmdb.org/t/p/original','poster_path','VHGHi','5729718HasROL','https://api.themoviedb.org/3'];_0x2c5a=function(){return _0x517646;};return _0x2c5a();}const _0x824508=require(_0x58bf06(0x135)),{createCanvas:_0x4ef518,loadImage:_0x2ba2b2}=require('canvas'),_0x276f27=require('fs'),_0x3e1057=require(_0x58bf06(0x145)),_0x1b2f00=_0x824508(),_0x321359=0xbb8,_0x46e02c=_0x58bf06(0x123),_0x296af1=_0x58bf06(0x14a),_0x4afda9=_0x58bf06(0x12d);async function _0xdc8005(_0x4aa7a5){const _0x51108d=_0x58bf06;try{const _0x4c696b=await _0x3e1057[_0x51108d(0x126)](_0x296af1+'/search/movie',{'params':{'api_key':_0x46e02c,'query':_0x4aa7a5}}),_0xd0069b=_0x4c696b[_0x51108d(0x130)]['results'][0x0];if(!_0xd0069b)throw new Error(_0x51108d(0x151));return _0x51108d(0x146)+_0xd0069b[_0x51108d(0x147)];}catch(_0x1cb265){return console['error'](_0x51108d(0x12a)+_0x1cb265['message']),null;}}function _0x1c61(_0x1b6f01,_0x3b4d66){const _0x2c5aaf=_0x2c5a();return _0x1c61=function(_0x1c61de,_0x3fc0ee){_0x1c61de=_0x1c61de-0x11d;let _0x263ad2=_0x2c5aaf[_0x1c61de];return _0x263ad2;},_0x1c61(_0x1b6f01,_0x3b4d66);}async function _0xb547ba(_0x1bb605){const _0x3e3ec0=_0x58bf06,_0x14a01b={'VHGHi':function(_0x5437e0,_0x556f){return _0x5437e0(_0x556f);},'CusQl':_0x3e3ec0(0x157),'vmvhE':function(_0xba31d8,_0x30358e){return _0xba31d8/_0x30358e;},'XDZtT':function(_0x1af216,_0x2ae4bd){return _0x1af216*_0x2ae4bd;},'qRqUy':function(_0x29140e,_0x12e996,_0x2f9aff){return _0x29140e(_0x12e996,_0x2f9aff);},'gluQZ':function(_0x21c9de,_0x1d5794){return _0x21c9de/_0x1d5794;},'kJrSA':_0x3e3ec0(0x120),'dzHbU':_0x3e3ec0(0x124),'UaOXH':function(_0x41151d,_0x4e7052){return _0x41151d/_0x4e7052;},'IXMiR':function(_0x3b2391,_0x1b8db4){return _0x3b2391-_0x1b8db4;},'TszwD':function(_0x23026b,_0x4fd606){return _0x23026b-_0x4fd606;},'INrDK':function(_0x53386e,_0x51b152){return _0x53386e/_0x51b152;},'Ilmsr':function(_0x4c83e7,_0x355dbf){return _0x4c83e7+_0x355dbf;},'joOtM':_0x3e3ec0(0x125)},_0x44ee57=await _0x14a01b[_0x3e3ec0(0x148)](_0xdc8005,_0x1bb605);if(!_0x44ee57)throw new Error(_0x14a01b[_0x3e3ec0(0x152)]);const _0x114209=await _0x2ba2b2(_0x44ee57),_0x42a9a7=0x4b0,_0x2c178d=0x640,_0x15a9b1=Math[_0x3e3ec0(0x156)](_0x14a01b[_0x3e3ec0(0x133)](_0x42a9a7,_0x114209[_0x3e3ec0(0x153)]),_0x14a01b[_0x3e3ec0(0x133)](_0x2c178d,_0x114209[_0x3e3ec0(0x140)])),_0x4486d9=_0x114209['width']*_0x15a9b1,_0x47aaae=_0x14a01b[_0x3e3ec0(0x121)](_0x114209[_0x3e3ec0(0x140)],_0x15a9b1),_0x3e5e36=_0x14a01b[_0x3e3ec0(0x150)](_0x4ef518,_0x4486d9,_0x47aaae),_0x467c44=_0x3e5e36[_0x3e3ec0(0x13c)]('2d');_0x467c44[_0x3e3ec0(0x159)](_0x114209,0x0,0x0,_0x4486d9,_0x47aaae);const _0xe0df9f=Math['min'](_0x4486d9,_0x47aaae),_0x8eb61=_0x14a01b['vmvhE'](_0xe0df9f,0xa),_0x5a06c=Math[_0x3e3ec0(0x156)](_0x8eb61,0xbe),_0x4a29fd=Math['min'](_0x14a01b['gluQZ'](_0x8eb61,0x2),0x5a);return _0x467c44['textAlign']='center',_0x467c44[_0x3e3ec0(0x132)]='white',_0x467c44[_0x3e3ec0(0x12b)]=_0x14a01b[_0x3e3ec0(0x13a)],_0x467c44[_0x3e3ec0(0x137)]=0x4,_0x467c44[_0x3e3ec0(0x14e)]=_0x3e3ec0(0x13d)+_0x5a06c+_0x3e3ec0(0x12c),_0x467c44[_0x3e3ec0(0x141)](_0x14a01b[_0x3e3ec0(0x134)],_0x14a01b[_0x3e3ec0(0x139)](_0x4486d9,0x2),_0x14a01b[_0x3e3ec0(0x11d)](_0x14a01b[_0x3e3ec0(0x139)](_0x47aaae,0x2),0x14)),_0x467c44[_0x3e3ec0(0x154)](_0x3e3ec0(0x124),_0x4486d9/0x2,_0x14a01b[_0x3e3ec0(0x14d)](_0x47aaae/0x2,0x14)),_0x467c44[_0x3e3ec0(0x14e)]=_0x3e3ec0(0x13d)+_0x4a29fd+'px\x20Arial',_0x467c44['strokeText'](_0x4afda9,_0x4486d9/0x2,_0x14a01b['INrDK'](_0x47aaae,0x2)+0x3c),_0x467c44['fillText'](_0x4afda9,_0x4486d9/0x2,_0x14a01b[_0x3e3ec0(0x13b)](_0x47aaae/0x2,0x3c)),_0x3e5e36[_0x3e3ec0(0x136)](_0x14a01b[_0x3e3ec0(0x14f)]);}_0x1b2f00[_0x58bf06(0x12e)](_0x824508[_0x58bf06(0x155)](_0x58bf06(0x143))),_0x1b2f00[_0x58bf06(0x126)]('/generate',async(_0x4113d7,_0x2e0f9c)=>{const _0x4cb84c=_0x58bf06,_0x577753={'gtJEz':_0x4cb84c(0x158),'IscaW':_0x4cb84c(0x125)},_0x1331de=_0x4113d7['query'][_0x4cb84c(0x128)];if(!_0x1331de)return _0x2e0f9c['status'](0x190)['send'](_0x4cb84c(0x122));try{const _0x434cc3=await _0xb547ba(_0x1331de);_0x2e0f9c[_0x4cb84c(0x13e)](_0x577753['gtJEz'],_0x577753[_0x4cb84c(0x131)]),_0x2e0f9c['send'](_0x434cc3);}catch(_0x43b943){_0x2e0f9c[_0x4cb84c(0x129)](0x1f4)[_0x4cb84c(0x15c)](_0x4cb84c(0x142)+_0x43b943['message']);}}),_0x1b2f00[_0x58bf06(0x13f)](_0x321359,()=>{const _0x41b05f=_0x58bf06;console[_0x41b05f(0x11f)]('Server\x20running\x20at\x20http://localhost:'+_0x321359);});
